@@ -1,0 +1,157 @@
+:root {
+    --primary-color: #cc0000;
+    --dark-bg: #2f2f2f;
+    --text-light: white;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+  }
+  
+  header {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  h1 {
+    margin-left: 20px;
+  }
+  
+  .hamburger-menu {
+    font-size: 28px;
+    cursor: pointer;
+    display: none;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    background: var(--dark-bg);
+    padding: 20px;
+    color: white;
+    transition: transform 0.3s ease;
+    z-index: 200;
+  }
+  
+  .sidebar.hide {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.show {
+    transform: translateX(0);
+  }
+  
+  .sidebar h2 {
+    margin-bottom: 30px;
+  }
+  
+  .sidebar a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .sidebar a:hover {
+    background: var(--primary-color);
+  }
+  
+  .button {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .button:hover {
+    background: #a80000;
+  }
+  
+  .close-btn {
+    font-size: 24px;
+    text-align: right;
+    cursor: pointer;
+    display: none;
+  }
+  
+  .content {
+    margin-left: 250px;
+    padding: 20px;
+  }
+  
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    /* Hamburger menu visible on smaller screens */
+    .hamburger-menu {
+      display: block;
+    }
+
+    /* Sidebar initially hidden on small screens */
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    /* Show sidebar when it's toggled */
+    .sidebar.show {
+      transform: translateX(0);
+    }
+
+    /* Content area fills the screen without margin */
+    .content {
+      margin-left: 0;
+    }
+
+    /* Close button for sidebar on smaller screens */
+    .close-btn {
+      display: block;
+    }
+
+    header {
+      margin-left: 0;
+    }
+  }
+
+  @media (min-width: 769px) {
+    header {
+      margin-left: 250px; /* Shift header to the right on larger screens */
+    }
+
+    .sidebar {
+      transform: translateX(0); /* Sidebar always visible on large screens */
+    }
+
+    .content {
+      margin-left: 250px;
+    }
+  }
+  

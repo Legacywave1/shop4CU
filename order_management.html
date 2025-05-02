@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Management - $hop4CU</title>
+  <link rel="stylesheet" href="admin_styles.css" />
+</head>
+<body>
+  <header>
+    <div class="hamburger-menu" onclick="toggleSidebar()">&#9776;</div>
+    <h1>Order Management - $hop4CU</h1>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <div class="close-btn" onclick="toggleSidebar()">✖</div>
+    <h2>Dashboard</h2>
+    <a href="admin_dashboard.html">Dashboard</a>
+    <a href="product_management.html">Product Management</a>
+    <a href="order_management.html">Order Management</a>
+    <a href="user_management.html">User Management</a>
+    <a href="store_editing.html">Edit Store</a>
+    <button class="button" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="content">
+    <div class="main-content">
+      <div class="card">
+        <h3>User Orders</h3>
+        <div id="order-list">
+          <!-- Orders will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin_scripts.js"></script>
+  <script>
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const orderList = document.getElementById('order-list');
+    orderList.innerHTML = orders.length === 0
+      ? '<p>No orders yet.</p>'
+      : orders.map(order => `
+          <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc;">
+            <strong>User:</strong> ${order.username}<br>
+            <strong>Items:</strong> ${order.items.join(", ")}
+          </div>
+        `).join('');
+  </script>
+</body>
+</html>
