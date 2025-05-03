@@ -11,57 +11,72 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      margin: 0;
     }
+
     .login-box {
       background-color: white;
-      padding: 30px;
+      padding: 40px;
       border: 1px solid #cc0000;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(204, 0, 0, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(204, 0, 0, 0.2);
+      width: 100%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
+
     h2 {
       text-align: center;
       color: #cc0000;
+      margin-bottom: 10px;
     }
+
     input {
-      display: block;
       width: 100%;
-      padding: 10px;
-      margin-top: 15px;
+      padding: 12px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
     }
+
     button {
-      margin-top: 20px;
-      padding: 10px;
+      padding: 12px;
       width: 100%;
       background-color: #cc0000;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       font-weight: bold;
+      font-size: 1rem;
       cursor: pointer;
+      transition: background 0.3s;
     }
+
     button:hover {
       background-color: #a80000;
     }
+
     .error {
       color: red;
       font-size: 14px;
-      margin-top: 10px;
       text-align: center;
     }
+
     .register-link {
       text-align: center;
-      margin-top: 20px;
       font-size: 14px;
     }
+
     .register-link a {
       color: #cc0000;
       font-weight: bold;
       text-decoration: none;
     }
+
     .register-link a:hover {
       text-decoration: underline;
     }
@@ -75,7 +90,6 @@
     <input type="password" id="password" placeholder="Password" />
     <button onclick="login()">Login</button>
     <div id="error-msg" class="error"></div>
-
     <p class="register-link">Don't have an account? <a href="register.html">Register here</a></p>
   </div>
 
@@ -85,23 +99,20 @@
       const password = document.getElementById('password').value;
       const errorMsg = document.getElementById('error-msg');
 
-      // Retrieve users from localStorage
       let users = JSON.parse(localStorage.getItem('users')) || [];
 
-      // Check if it's admin login
       if (username === 'admin' && password === 'admin123') {
         localStorage.setItem('loggedInUser', 'admin');
         localStorage.setItem('adminLoggedIn', 'true');
-        window.location.href = 'admin_dashboard.html'; // Redirect to admin dashboard
+        window.location.href = 'admin_dashboard.html';
         return;
       }
 
-      // Find if user exists in regular users
       const user = users.find(user => user.username === username && user.password === password);
 
       if (user) {
         localStorage.setItem('loggedInUser', username);
-        window.location.href = 'index.html'; // Redirect to store page for customers
+        window.location.href = 'index.html';
       } else {
         errorMsg.textContent = 'Invalid username or password.';
       }

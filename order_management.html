@@ -14,7 +14,7 @@
 
   <div class="sidebar" id="sidebar">
     <div class="close-btn" onclick="toggleSidebar()">✖</div>
-    <h2>Dashboard</h2>
+    <h2>Navigation</h2>
     <a href="admin_dashboard.html">Dashboard</a>
     <a href="product_management.html">Product Management</a>
     <a href="order_management.html">Order Management</a>
@@ -36,16 +36,33 @@
 
   <script src="admin_scripts.js"></script>
   <script>
+    // Fetch saved orders from localStorage
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     const orderList = document.getElementById('order-list');
-    orderList.innerHTML = orders.length === 0
-      ? '<p>No orders yet.</p>'
-      : orders.map(order => `
+  
+    // Debugging: Log orders to the console
+    console.log(orders);
+  
+    // If no orders in localStorage
+    if (orders.length === 0) {
+      orderList.innerHTML = '<p>No orders yet.</p>';
+    } else {
+      // Render orders
+      orders.forEach(order => {
+        // Check if 'items' exists and is an array, otherwise set it to an empty array
+        const items = Array.isArray(order.items) ? order.items : [];
+        
+        const orderHTML = `
           <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc;">
             <strong>User:</strong> ${order.username}<br>
-            <strong>Items:</strong> ${order.items.join(", ")}
+            <strong>Items:</strong> ${items.length > 0 ? items.join(", ") : "No items"}<br>
+            <strong>Total Price:</strong> $${order.totalPrice.toFixed(2)}<br>
+            <strong>Location:</strong> ${order.location}
           </div>
-        `).join('');
-  </script>
+        `;
+        orderList.insertAdjacentHTML('beforeend', orderHTML);
+      });
+    }
+  </script>  
 </body>
 </html>

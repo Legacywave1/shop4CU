@@ -5,6 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Edit Store - $hop4CU</title>
   <link rel="stylesheet" href="admin_styles.css" />
+  <style>
+    .category-section { margin-bottom: 40px; }
+    .category-section h4 { margin-bottom: 15px; color: #222; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .product-item {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #f9f9f9;
+      text-align: center;
+    }
+    .product-item img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; }
+    .product-item input[type="text"],
+    .product-item input[type="number"],
+    .product-item textarea {
+      width: 100%; margin-bottom: 5px; padding: 5px; font-size: 0.9rem;
+    }
+    .product-item select { width: 100%; margin-bottom: 5px; padding: 5px; }
+    .product-item button {
+      margin: 3px; background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;
+    }
+    .product-item button.delete { background: #cc0000; }
+    .product-item button:hover { opacity: 0.9; }
+  </style>
 </head>
 <body>
   <header>
@@ -14,7 +42,7 @@
 
   <div class="sidebar" id="sidebar">
     <div class="close-btn" onclick="toggleSidebar()">✖</div>
-    <h2>Dashboard</h2>
+    <h2>Navigation</h2>
     <a href="admin_dashboard.html">Dashboard</a>
     <a href="product_management.html">Product Management</a>
     <a href="order_management.html">Order Management</a>
@@ -26,12 +54,87 @@
   <div class="content">
     <div class="main-content">
       <div class="card">
-        <h3>Edit Store Settings</h3>
-        <p>Store configuration inputs will be added here.</p>
+        <h3>Edit Products</h3>
+        <div id="product-list"></div>
       </div>
     </div>
   </div>
 
-  <script src="admin_scripts.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('show');
+    }
+    function logout() {
+      localStorage.removeItem('adminLoggedIn');
+      window.location.href = 'login.html';
+    }
+
+    const productList = document.getElementById('product-list');
+    const placeholderImage = 'https://via.placeholder.com/100x100.png?text=No+Image';
+
+    function loadProducts() {
+      const products = JSON.parse(localStorage.getItem('products')) || [];
+      const categories = ["Electronics", "Stationery", "Clothing"];
+      productList.innerHTML = '';
+
+      categories.forEach(category => {
+        const categoryProducts = products.filter(p => p.category === category);
+        if (categoryProducts.length > 0) {
+          const categorySection = document.createElement('div');
+          categorySection.className = 'category-section';
+          categorySection.innerHTML = `<h4>${category}</h4>`;
+
+          const categoryGrid = document.createElement('div');
+          categoryGrid.className = 'category-grid';
+
+          categoryProducts.forEach((product, index) => {
+            const productItem = document.createElement('div');
+            productItem.className = 'product-item';
+            productItem.innerHTML = `
+              <img src="${product.image || placeholderImage}" alt="${product.name}">
+              <input type="text" value="${product.name}" placeholder="Product Name" id="name-${index}">
+              <select id="category-${index}">
+                <option value="Electronics" ${product.category === 'Electronics' ? 'selected' : ''}>Electronics</option>
+                <option value="Stationery" ${product.category === 'Stationery' ? 'selected' : ''}>Stationery</option>
+                <option value="Clothing" ${product.category === 'Clothing' ? 'selected' : ''}>Clothing</option>
+              </select>
+              <input type="number" value="${product.price}" placeholder="Price" id="price-${index}">
+              <textarea rows="2" placeholder="Description" id="desc-${index}">${product.description}</textarea>
+              <button onclick="updateProduct(${index})">Save</button>
+              <button class="delete" onclick="deleteProduct(${index})">Delete</button>
+            `;
+            categoryGrid.appendChild(productItem);
+          });
+
+          categorySection.appendChild(categoryGrid);
+          productList.appendChild(categorySection);
+        }
+      });
+    }
+
+    function updateProduct(index) {
+      const products = JSON.parse(localStorage.getItem('products')) || [];
+      const name = document.getElementById(`name-${index}`).value.trim();
+      const category = document.getElementById(`category-${index}`).value;
+      const price = parseFloat(document.getElementById(`price-${index}`).value.trim());
+      const description = document.getElementById(`desc-${index}`).value.trim();
+
+      products[index] = { ...products[index], name, category, price, description };
+      localStorage.setItem('products', JSON.stringify(products));
+      alert('Product updated successfully!');
+      loadProducts();
+    }
+
+    function deleteProduct(index) {
+      const products = JSON.parse(localStorage.getItem('products')) || [];
+      if (confirm('Are you sure you want to delete this product?')) {
+        products.splice(index, 1);
+        localStorage.setItem('products', JSON.stringify(products));
+        loadProducts();
+      }
+    }
+
+    loadProducts();
+  </script>
 </body>
 </html>

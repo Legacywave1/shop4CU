@@ -12,36 +12,44 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
     .register-box {
       background-color: white;
-      padding: 30px;
+      padding: 40px 30px;
       border: 1px solid #cc0000;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(204, 0, 0, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(204, 0, 0, 0.25);
+      width: 100%;
+      max-width: 400px;
     }
     h2 {
       text-align: center;
       color: #cc0000;
+      margin-bottom: 25px;
     }
     input {
       display: block;
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-top: 15px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
     }
     button {
-      margin-top: 20px;
-      padding: 10px;
+      margin-top: 25px;
+      padding: 12px;
       width: 100%;
       background-color: #cc0000;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       font-weight: bold;
+      font-size: 1rem;
       cursor: pointer;
+      transition: background-color 0.3s ease;
     }
     button:hover {
       background-color: #a80000;
@@ -49,8 +57,21 @@
     .error {
       color: red;
       font-size: 14px;
-      margin-top: 10px;
+      margin-top: 12px;
       text-align: center;
+    }
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    .login-link a {
+      color: #cc0000;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .login-link a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -62,21 +83,20 @@
     <input type="password" id="password" placeholder="Enter Password" />
     <button onclick="register()">Register</button>
     <div id="error-msg" class="error"></div>
+    <p class="login-link">Already have an account? <a href="login.html">Login here</a></p>
   </div>
 
   <script>
     function register() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
       const errorMsg = document.getElementById('error-msg');
 
-      // Basic validation
       if (!username || !password) {
         errorMsg.textContent = "Both fields are required!";
         return;
       }
 
-      // Check if username already exists
       let users = JSON.parse(localStorage.getItem('users')) || [];
       const existingUser = users.find(user => user.username === username);
       if (existingUser) {
@@ -84,11 +104,9 @@
         return;
       }
 
-      // Save new user to localStorage
       users.push({ username, password });
       localStorage.setItem('users', JSON.stringify(users));
 
-      // Redirect to login page after successful registration
       alert('Registration successful! You can now log in.');
       window.location.href = 'login.html';
     }
