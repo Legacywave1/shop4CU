@@ -1,149 +1,62 @@
-<!-- admin_dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard - $hop4CU</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --primary-color: #cc0000;
       --dark-bg: #2f2f2f;
       --text-light: white;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
     header {
       background-color: var(--primary-color);
       color: var(--text-light);
       padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      margin-left: 250px;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 100; margin-left: 250px;
     }
-
-    h1 {
-      font-size: 1.6rem;
-      margin-left: 20px;
-    }
-
-    .hamburger-menu {
-      font-size: 28px;
-      color: white;
-      cursor: pointer;
-      display: none;
-    }
-
+    h1 { font-size: 1.6rem; margin-left: 20px; }
+    .hamburger-menu { font-size: 28px; color: white; cursor: pointer; display: none; }
     .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      width: 250px;
-      background-color: var(--dark-bg);
-      color: white;
-      padding: 20px;
-      z-index: 200;
+      position: fixed; top: 0; left: 0; height: 100vh; width: 250px;
+      background-color: var(--dark-bg); color: white; padding: 20px; z-index: 200;
     }
-
     .sidebar a {
-      display: block;
-      color: white;
-      text-decoration: none;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 5px;
-      transition: background 0.3s ease;
+      display: block; color: white; text-decoration: none; margin: 10px 0;
+      padding: 10px; border-radius: 5px; transition: background 0.3s ease;
     }
-
-    .sidebar a:hover {
-      background-color: var(--primary-color);
-    }
-
+    .sidebar a:hover { background-color: var(--primary-color); }
     .button {
-      width: 100%;
-      padding: 10px;
-      background-color: var(--primary-color);
-      border: none;
-      border-radius: 5px;
-      color: white;
-      cursor: pointer;
-      margin-top: 20px;
+      width: 100%; padding: 10px; background-color: var(--primary-color);
+      border: none; border-radius: 5px; color: white; cursor: pointer; margin-top: 20px;
     }
-
-    .content {
-      margin-left: 250px;
-      padding: 20px;
-    }
-
+    .content { margin-left: 250px; padding: 20px; }
     .card {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      flex: 1;
-      min-width: 250px;
+      background: white; padding: 20px; border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); flex: 1; min-width: 250px;
     }
-
-    .main-content {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
+    .main-content { display: flex; flex-wrap: wrap; gap: 20px; }
+    .card h3 { color: var(--primary-color); margin-bottom: 10px; }
+    .close-btn { display: none; font-size: 24px; color: white; text-align: right; cursor: pointer; margin-bottom: 20px; }
+    .chart-container {
+      background: white; padding: 20px; border-radius: 8px; 
+      margin-top: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
-    .card h3 {
-      color: var(--primary-color);
-      margin-bottom: 10px;
-    }
-
-    .close-btn {
-        display: none;
-        font-size: 24px;
-        color: white;
-        text-align: right;
-        cursor: pointer;
-        margin-bottom: 20px;
-    }
-
+    canvas { width: 100% !important; height: 300px !important; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
     @media (max-width: 768px) {
-      header {
-        margin-left: 0;
-      }
-
-      .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-      }
-
-      .sidebar.show {
-        transform: translateX(0);
-      }
-
-      .hamburger-menu {
-        display: block;
-      }
-
-      .content {
-        margin-left: 0;
-      }
-
-      .close-btn {
-        display: block;
-      }
+      header { margin-left: 0; }
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+      .sidebar.show { transform: translateX(0); }
+      .hamburger-menu { display: block; }
+      .content { margin-left: 0; }
+      .close-btn { display: block; }
+      .charts-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -155,14 +68,14 @@
 </header>
 
 <div class="sidebar" id="sidebar">
-    <div class="close-btn" onclick="toggleSidebar()">✖</div>
-    <h2>Navigation</h2>
-    <a href="admin_dashboard.html">Dashboard</a>
-    <a href="product_management.html">Product Management</a>
-    <a href="order_management.html">Order Management</a>
-    <a href="user_management.html">User Management</a>
-    <a href="store_editing.html">Edit Store</a>
-    <button class="button" onclick="logout()">Logout</button>
+  <div class="close-btn" onclick="toggleSidebar()">✖</div>
+  <h2>Navigation</h2>
+  <a href="admin_dashboard.html">Dashboard</a>
+  <a href="product_management.html">Product Management</a>
+  <a href="order_management.html">Order Management</a>
+  <a href="user_management.html">User Management</a>
+  <a href="store_editing.html">Edit Store</a>
+  <button class="button" onclick="logout()">Logout</button>
 </div>
 
 <div class="content">
@@ -180,6 +93,26 @@
       <p id="orderCount">0</p>
     </div>
   </div>
+
+  <div class="charts-grid">
+    <!-- Top Products Chart -->
+    <div class="chart-container">
+      <h3>Top Products</h3>
+      <canvas id="topProductsChart"></canvas>
+    </div>
+
+    <!-- Customer Acquisition Chart -->
+    <div class="chart-container">
+      <h3>Customer Acquisition</h3>
+      <canvas id="customerAcquisitionChart"></canvas>
+    </div>
+
+    <!-- Order Fulfillment Chart -->
+    <div class="chart-container">
+      <h3>Order Fulfillment</h3>
+      <canvas id="orderFulfillmentChart"></canvas>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -188,8 +121,7 @@
   }
 
   function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('show');
+    document.getElementById('sidebar').classList.toggle('show');
   }
 
   function logout() {
@@ -197,7 +129,6 @@
     window.location.href = 'login.html';
   }
 
-  // Dummy values from localStorage
   function updateDashboardCounts() {
     const users = JSON.parse(localStorage.getItem('users')) || [];
     const products = JSON.parse(localStorage.getItem('products')) || [];
@@ -208,7 +139,93 @@
     document.getElementById('orderCount').innerText = orders.length;
   }
 
+  // Render Top Products Chart
+  function renderTopProductsChart() {
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+    const productSales = products.reduce((acc, product) => {
+      acc[product.name] = (acc[product.name] || 0) + 1;
+      return acc;
+    }, {});
+
+    const ctx = document.getElementById('topProductsChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(productSales),
+        datasets: [{
+          label: 'Top Products by Sales',
+          data: Object.values(productSales),
+          backgroundColor: '#cc0000'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: 'Top Products by Sales' }
+        },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  // Render Customer Acquisition Chart
+  function renderCustomerAcquisitionChart() {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const userCounts = new Array(12).fill(0);
+
+    users.forEach(user => {
+      const month = new Date(user.registrationDate).getMonth();
+      userCounts[month]++;
+    });
+
+    const ctx = document.getElementById('customerAcquisitionChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [{
+          label: 'Customer Acquisition (Monthly)',
+          data: userCounts,
+          borderColor: '#ff6666',
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { title: { display: true, text: 'Customer Acquisition' } }
+      }
+    });
+  }
+
+  // Render Order Fulfillment Chart
+  function renderOrderFulfillmentChart() {
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const fulfilled = orders.filter(o => o.status === 'fulfilled').length;
+    const unfulfilled = orders.filter(o => o.status !== 'fulfilled').length;
+
+    const ctx = document.getElementById('orderFulfillmentChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Fulfilled', 'Unfulfilled'],
+        datasets: [{
+          data: [fulfilled, unfulfilled],
+          backgroundColor: ['#66cc66', '#ff6666']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { title: { display: true, text: 'Order Fulfillment' } }
+      }
+    });
+  }
+
   updateDashboardCounts();
+  renderTopProductsChart();
+  renderCustomerAcquisitionChart();
+  renderOrderFulfillmentChart();
 </script>
 
 </body>

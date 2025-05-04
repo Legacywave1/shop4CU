@@ -19,19 +19,30 @@
       border-radius: 5px;
       background: #f9f9f9;
       text-align: center;
+      cursor: pointer;
     }
     .product-item img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; }
-    .product-item input[type="text"],
-    .product-item input[type="number"],
-    .product-item textarea {
-      width: 100%; margin-bottom: 5px; padding: 5px; font-size: 0.9rem;
+    .product-item h4 { margin: 10px 0; font-size: 1.1rem; }
+
+    /* Modal styles */
+    .modal {
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+      width: 100%; height: 100%; overflow: auto;
+      background-color: rgba(0,0,0,0.5);
     }
-    .product-item select { width: 100%; margin-bottom: 5px; padding: 5px; }
-    .product-item button {
-      margin: 3px; background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;
+    .modal-content {
+      background-color: #fff; margin: 10% auto; padding: 20px;
+      border: 1px solid #888; width: 300px; border-radius: 8px;
     }
-    .product-item button.delete { background: #cc0000; }
-    .product-item button:hover { opacity: 0.9; }
+    .modal-content input, .modal-content select, .modal-content textarea {
+      width: 100%; margin-bottom: 10px; padding: 8px; font-size: 1rem;
+    }
+    .modal-content button {
+      margin-top: 5px; padding: 8px; width: 32%; border: none; border-radius: 5px; cursor: pointer;
+    }
+    .modal-content button.save { background: #007bff; color: white; }
+    .modal-content button.cancel { background: #ccc; }
+    .modal-content button.delete { background: #dc3545; color: white; }
   </style>
 </head>
 <body>
@@ -60,10 +71,32 @@
     </div>
   </div>
 
+  <!-- Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h4>Edit Product</h4>
+      <input type="text" id="modalName" placeholder="Product Name">
+      <select id="modalCategory">
+        <option value="Electronics">Electronics</option>
+        <option value="Stationery">Stationery</option>
+        <option value="Clothing">Clothing</option>
+      </select>
+      <input type="number" id="modalPrice" placeholder="Price">
+      <textarea id="modalDesc" rows="2" placeholder="Description"></textarea>
+      <input type="number" id="modalStock" placeholder="Stock Amount">
+      <div style="display:flex; justify-content:space-between; gap: 4px;">
+        <button class="save" onclick="saveProduct()">Save</button>
+        <button class="cancel" onclick="closeModal()">Cancel</button>
+        <button class="delete" onclick="deleteProduct()">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('show');
     }
+
     function logout() {
       localStorage.removeItem('adminLoggedIn');
       window.location.href = 'login.html';
@@ -71,11 +104,12 @@
 
     const productList = document.getElementById('product-list');
     const placeholderImage = 'https://via.placeholder.com/100x100.png?text=No+Image';
+    let products = JSON.parse(localStorage.getItem('products')) || [];
+    let editIndex = null;
 
     function loadProducts() {
-      const products = JSON.parse(localStorage.getItem('products')) || [];
-      const categories = ["Electronics", "Stationery", "Clothing"];
       productList.innerHTML = '';
+      const categories = ["Electronics", "Stationery", "Clothing"];
 
       categories.forEach(category => {
         const categoryProducts = products.filter(p => p.category === category);
@@ -87,21 +121,18 @@
           const categoryGrid = document.createElement('div');
           categoryGrid.className = 'category-grid';
 
-          categoryProducts.forEach((product, index) => {
+          categoryProducts.forEach((product) => {
             const productItem = document.createElement('div');
             productItem.className = 'product-item';
+            productItem.addEventListener('click', function() { openEditModal(product.id); });
+
             productItem.innerHTML = `
               <img src="${product.image || placeholderImage}" alt="${product.name}">
-              <input type="text" value="${product.name}" placeholder="Product Name" id="name-${index}">
-              <select id="category-${index}">
-                <option value="Electronics" ${product.category === 'Electronics' ? 'selected' : ''}>Electronics</option>
-                <option value="Stationery" ${product.category === 'Stationery' ? 'selected' : ''}>Stationery</option>
-                <option value="Clothing" ${product.category === 'Clothing' ? 'selected' : ''}>Clothing</option>
-              </select>
-              <input type="number" value="${product.price}" placeholder="Price" id="price-${index}">
-              <textarea rows="2" placeholder="Description" id="desc-${index}">${product.description}</textarea>
-              <button onclick="updateProduct(${index})">Save</button>
-              <button class="delete" onclick="deleteProduct(${index})">Delete</button>
+              <h4>${product.name}</h4>
+              <p>Category: ${product.category}</p>
+              <p>Price: $${product.price}</p>
+              <p>${product.description}</p>
+              <p>Stock: ${product.stock}</p>
             `;
             categoryGrid.appendChild(productItem);
           });
@@ -112,25 +143,55 @@
       });
     }
 
-    function updateProduct(index) {
-      const products = JSON.parse(localStorage.getItem('products')) || [];
-      const name = document.getElementById(`name-${index}`).value.trim();
-      const category = document.getElementById(`category-${index}`).value;
-      const price = parseFloat(document.getElementById(`price-${index}`).value.trim());
-      const description = document.getElementById(`desc-${index}`).value.trim();
-
-      products[index] = { ...products[index], name, category, price, description };
-      localStorage.setItem('products', JSON.stringify(products));
-      alert('Product updated successfully!');
-      loadProducts();
+    function openEditModal(productId) {
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        document.getElementById('modalName').value = product.name;
+        document.getElementById('modalCategory').value = product.category;
+        document.getElementById('modalPrice').value = product.price;
+        document.getElementById('modalDesc').value = product.description;
+        document.getElementById('modalStock').value = product.stock;
+        document.getElementById('editModal').style.display = 'block';
+        editIndex = products.indexOf(product);
+      }
     }
 
-    function deleteProduct(index) {
-      const products = JSON.parse(localStorage.getItem('products')) || [];
-      if (confirm('Are you sure you want to delete this product?')) {
-        products.splice(index, 1);
+    function closeModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function saveProduct() {
+      if (editIndex !== null) {
+        const updatedProduct = {
+          ...products[editIndex],
+          name: document.getElementById('modalName').value.trim(),
+          category: document.getElementById('modalCategory').value,
+          price: parseFloat(document.getElementById('modalPrice').value),
+          description: document.getElementById('modalDesc').value.trim(),
+          stock: parseInt(document.getElementById('modalStock').value) || 0
+        };
+
+        products[editIndex] = updatedProduct;
         localStorage.setItem('products', JSON.stringify(products));
+        closeModal();
         loadProducts();
+        alert('Product updated successfully!');
+      }
+    }
+
+    function deleteProduct() {
+      if (editIndex !== null && confirm('Are you sure you want to delete this product?')) {
+        products.splice(editIndex, 1);
+        localStorage.setItem('products', JSON.stringify(products));
+        closeModal();
+        loadProducts();
+        alert('Product deleted successfully!');
+      }
+    }
+
+    window.onclick = function(event) {
+      if (event.target === document.getElementById('editModal')) {
+        closeModal();
       }
     }
 

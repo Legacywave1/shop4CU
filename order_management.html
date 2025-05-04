@@ -34,35 +34,33 @@
     </div>
   </div>
 
-  <script src="admin_scripts.js"></script>
   <script>
-    // Fetch saved orders from localStorage
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
     const orderList = document.getElementById('order-list');
-  
-    // Debugging: Log orders to the console
-    console.log(orders);
-  
-    // If no orders in localStorage
-    if (orders.length === 0) {
+
+    // Fetch all orders from localStorage
+    const orders = JSON.parse(localStorage.getItem('orders')) || {};
+
+    // If no orders are found in localStorage
+    if (Object.keys(orders).length === 0) {
       orderList.innerHTML = '<p>No orders yet.</p>';
     } else {
-      // Render orders
-      orders.forEach(order => {
-        // Check if 'items' exists and is an array, otherwise set it to an empty array
-        const items = Array.isArray(order.items) ? order.items : [];
-        
-        const orderHTML = `
-          <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc;">
-            <strong>User:</strong> ${order.username}<br>
-            <strong>Items:</strong> ${items.length > 0 ? items.join(", ") : "No items"}<br>
-            <strong>Total Price:</strong> $${order.totalPrice.toFixed(2)}<br>
-            <strong>Location:</strong> ${order.location}
-          </div>
-        `;
-        orderList.insertAdjacentHTML('beforeend', orderHTML);
-      });
+      // Render each user's orders
+      for (let username in orders) {
+        const userOrders = orders[username];
+        userOrders.forEach(order => {
+          const items = Array.isArray(order.cart) ? order.cart.map(item => item.name).join(", ") : "No items";
+          const orderHTML = `
+            <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc;">
+              <strong>User:</strong> ${order.username}<br>
+              <strong>Items:</strong> ${items}<br>
+              <strong>Total Price:</strong> $${parseFloat(order.total).toFixed(2)}<br>
+              <strong>Location:</strong> ${order.location}
+            </div>
+          `;
+          orderList.insertAdjacentHTML('beforeend', orderHTML);
+        });
+      }
     }
-  </script>  
+  </script>
 </body>
 </html>

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Cart - $hop4CU</title>
   <style>
-    /* Same styles as before... */
     body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: white; color: #333; }
     header { background-color: #cc0000; color: white; padding: 20px; text-align: center; }
     nav { background-color: #a80000; padding: 10px; text-align: center; }
@@ -24,7 +23,6 @@
       margin: 0 2px;
     }
     .qty-btn:hover, .remove-btn:hover { background: #a80000; }
-    /* Modal styles same as before... */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
     .modal-content { background-color: white; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; }
     .modal h2 { color: #cc0000; margin-bottom: 15px; }
@@ -47,7 +45,7 @@
   <table id="cart-table">
     <thead>
       <tr>
-        <th>Item</th><th>Price ($)</th><th>Quantity</th><th>Subtotal ($)</th><th>Actions</th>
+        <th>Item</th><th>Price ($)</th><th>Quantity</th><th>Stock</th><th>Subtotal ($)</th><th>Actions</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -58,7 +56,7 @@
   <button class="checkout-btn" onclick="openModal()">Checkout</button>
 </div>
 
-<!-- Modal same as before -->
+<!-- Modal for Delivery Location -->
 <div id="locationModal" class="modal">
   <div class="modal-content">
     <h2>Select Delivery Location</h2>
@@ -81,16 +79,30 @@
   let cart = JSON.parse(localStorage.getItem('cart')) || [];
   const tableBody = document.querySelector('#cart-table tbody');
   const totalDisplay = document.getElementById('total');
+  let allProducts = JSON.parse(localStorage.getItem('products')) || [];
 
   function renderCart() {
     tableBody.innerHTML = '';
     let total = 0;
     if (cart.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="5">Your cart is empty.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6">Your cart is empty.</td></tr>';
       totalDisplay.textContent = '';
       return;
     }
     cart.forEach((item, index) => {
+      const product = allProducts.find(p => p.name === item.name);
+      const stock = product ? product.stock : 0;
+      if (item.quantity > stock) {
+        item.quantity = stock;
+        if (stock === 0) {
+          alert(`${item.name} is out of stock and will be removed from your cart.`);
+          cart.splice(index, 1);
+          saveCart();
+          return;
+        } else {
+          alert(`Quantity of ${item.name} adjusted to available stock (${stock}).`);
+        }
+      }
       const subtotal = item.price * item.quantity;
       total += subtotal;
       const row = `
@@ -102,6 +114,7 @@
             ${item.quantity}
             <button class="qty-btn" onclick="changeQuantity(${index}, 1)">+</button>
           </td>
+          <td>${stock}</td>
           <td>${subtotal.toFixed(2)}</td>
           <td><button class="remove-btn" onclick="removeItem(${index})">🗑️</button></td>
         </tr>`;
@@ -111,13 +124,17 @@
   }
 
   function changeQuantity(index, delta) {
-    cart[index].quantity += delta;
-    if (cart[index].quantity < 1) {
+    const product = allProducts.find(p => p.name === cart[index].name);
+    const stock = product ? product.stock : 0;
+    const newQuantity = cart[index].quantity + delta;
+    if (newQuantity < 1) {
       if (confirm(`Remove ${cart[index].name} from cart?`)) {
         cart.splice(index, 1);
-      } else {
-        cart[index].quantity = 1;
       }
+    } else if (newQuantity > stock) {
+      alert(`Cannot increase quantity beyond available stock (${stock}).`);
+    } else {
+      cart[index].quantity = newQuantity;
     }
     saveCart();
   }
@@ -163,9 +180,28 @@
       if (!offCampusText) { alert('Please specify your off-campus location.'); return; }
       location = offCampusText;
     }
-    const orderDetails = { cart, total: totalDisplay.textContent.split('$')[1], location, timestamp: new Date().toISOString() };
-    let orders = JSON.parse(localStorage.getItem('orders')) || [];
-    orders.push(orderDetails);
+
+    const username = localStorage.getItem('loggedInUser');
+    if (!username) {
+      alert('Please log in to place an order.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const orderDetails = { username, cart, total: totalDisplay.textContent.split('$')[1], location, timestamp: new Date().toISOString() };
+    let orders = JSON.parse(localStorage.getItem('orders')) || {};
+    if (!orders[username]) orders[username] = [];
+    orders[username].push(orderDetails);
+
+    // Update product stock
+    allProducts.forEach(product => {
+      const cartItem = cart.find(item => item.name === product.name);
+      if (cartItem) {
+        product.stock = Math.max(0, product.stock - cartItem.quantity);
+      }
+    });
+    localStorage.setItem('products', JSON.stringify(allProducts));
+
     localStorage.setItem('orders', JSON.stringify(orders));
     alert('Order placed successfully!');
     localStorage.removeItem('cart');

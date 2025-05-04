@@ -93,7 +93,15 @@
       const reader = new FileReader();
 
       function saveProduct(imageBase64) {
-        const product = { name, category, price, description, stock, image: imageBase64 };
+        const product = {
+          id: Date.now(),  // Unique ID for each product based on the current time
+          name,
+          category,
+          price,
+          description,
+          stock,
+          image: imageBase64
+        };
         const products = JSON.parse(localStorage.getItem('products')) || [];
         products.push(product);
         localStorage.setItem('products', JSON.stringify(products));

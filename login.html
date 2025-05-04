@@ -101,20 +101,22 @@
 
       let users = JSON.parse(localStorage.getItem('users')) || [];
 
+      // Hardcoded admin check
       if (username === 'admin' && password === 'admin123') {
         localStorage.setItem('loggedInUser', 'admin');
         localStorage.setItem('adminLoggedIn', 'true');
-        window.location.href = 'admin_dashboard.html';
+        window.location.href = 'admin_dashboard.html';  // Redirect to the admin dashboard
         return;
       }
 
+      // Check if user credentials are valid
       const user = users.find(user => user.username === username && user.password === password);
 
       if (user) {
-        localStorage.setItem('loggedInUser', username);
-        window.location.href = 'index.html';
+        localStorage.setItem('loggedInUser', username);  // Set logged-in user
+        window.location.href = 'index.html';  // Redirect to the homepage
       } else {
-        errorMsg.textContent = 'Invalid username or password.';
+        errorMsg.textContent = 'Invalid username or password.';  // Show error message
       }
     }
   </script>
