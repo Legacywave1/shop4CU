@@ -81,6 +81,7 @@ function loadCategoryProducts() {
       <img src="${product.image}" alt="${product.name}">
       <h4>${product.name}</h4>
       <p>$${product.price.toFixed(2)}</p>
+      <p><strong>Stock:</strong> ${product.stock}</p>
       <button onclick="addToCart('${product.name}', ${product.price})">Add to Cart</button>`;
     grid.appendChild(card);
   });

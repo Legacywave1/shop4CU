@@ -5,6 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Order Management - $hop4CU</title>
   <link rel="stylesheet" href="admin_styles.css" />
+  <style>
+    /* Button styling */
+    .action-button {
+      padding: 8px 12px;
+      margin: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .confirm-button {
+      background-color: #4CAF50; /* Green */
+      color: white;
+    }
+
+    .confirm-button:disabled {
+      background-color: #a5d6a7; /* Light green */
+      cursor: not-allowed;
+    }
+
+    .sent-button {
+      background-color: #2196F3; /* Blue */
+      color: white;
+    }
+
+    .sent-button:disabled {
+      background-color: #90caf9; /* Light blue */
+      cursor: not-allowed;
+    }
+
+    .decline-button {
+      background-color: #f44336; /* Red */
+      color: white;
+    }
+
+    .decline-button:disabled {
+      background-color: #ef9a9a; /* Light red */
+      cursor: not-allowed;
+    }
+
+    .reopen-button {
+      background-color: #FFC107; /* Amber */
+      color: white;
+    }
+
+    .delete-button {
+      background-color: #000000; /* Black */
+      color: white;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -40,27 +91,87 @@
     // Fetch all orders from localStorage
     const orders = JSON.parse(localStorage.getItem('orders')) || {};
 
-    // If no orders are found in localStorage
-    if (Object.keys(orders).length === 0) {
-      orderList.innerHTML = '<p>No orders yet.</p>';
-    } else {
-      // Render each user's orders
+    // Function to update orders in localStorage
+    function updateOrders() {
+      localStorage.setItem('orders', JSON.stringify(orders));
+    }
+
+    // Function to render orders
+    function renderOrders() {
+      orderList.innerHTML = ''; // Clear the list
+      if (Object.keys(orders).length === 0) {
+        orderList.innerHTML = '<p>No orders yet.</p>';
+        return;
+      }
+
       for (let username in orders) {
         const userOrders = orders[username];
-        userOrders.forEach(order => {
+        userOrders.forEach((order, index) => {
           const items = Array.isArray(order.cart) ? order.cart.map(item => item.name).join(", ") : "No items";
           const orderHTML = `
             <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc;">
               <strong>User:</strong> ${order.username}<br>
               <strong>Items:</strong> ${items}<br>
               <strong>Total Price:</strong> $${parseFloat(order.total).toFixed(2)}<br>
-              <strong>Location:</strong> ${order.location}
+              <strong>Location:</strong> ${order.location}<br>
+              <strong>Status:</strong> ${order.status || 'Pending'}<br>
+              ${order.status === 'Declined' ? `
+                <button class="action-button reopen-button" onclick="reopenOrder('${username}', ${index})">Reopen</button>
+                <button class="action-button delete-button" onclick="deleteOrder('${username}', ${index})">Delete</button>
+              ` : order.status === 'Sent' ? `
+                <button class="action-button delete-button" onclick="deleteOrder('${username}', ${index})">Delete</button>
+              ` : `
+                <button class="action-button confirm-button" onclick="confirmOrder('${username}', ${index})" ${order.status === 'Confirmed' || order.status === 'Sent' ? 'disabled' : ''}>Confirm</button>
+                <button class="action-button sent-button" onclick="markAsSent('${username}', ${index})" ${order.status !== 'Confirmed' ? 'disabled' : ''}>Mark as Sent</button>
+                <button class="action-button decline-button" onclick="declineOrder('${username}', ${index})" ${order.status === 'Sent' ? 'disabled' : ''}>Decline</button>
+              `}
             </div>
           `;
           orderList.insertAdjacentHTML('beforeend', orderHTML);
         });
       }
     }
+
+    // Function to confirm an order
+    function confirmOrder(username, index) {
+      orders[username][index].status = 'Confirmed';
+      updateOrders();
+      renderOrders();
+    }
+
+    // Function to mark an order as sent
+    function markAsSent(username, index) {
+      orders[username][index].status = 'Sent';
+      updateOrders();
+      renderOrders();
+    }
+
+    // Function to decline an order
+    function declineOrder(username, index) {
+      orders[username][index].status = 'Declined';
+      updateOrders();
+      renderOrders();
+    }
+
+    // Function to reopen a declined order
+    function reopenOrder(username, index) {
+      orders[username][index].status = 'Pending';
+      updateOrders();
+      renderOrders();
+    }
+
+    // Function to delete an order
+    function deleteOrder(username, index) {
+      orders[username].splice(index, 1);
+      if (orders[username].length === 0) {
+        delete orders[username];
+      }
+      updateOrders();
+      renderOrders();
+    }
+
+    // Initial render
+    renderOrders();
   </script>
 </body>
 </html>
