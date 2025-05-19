@@ -2,124 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login - $hop4CU</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #fff0f0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-
-    .login-box {
-      background-color: white;
-      padding: 40px;
-      border: 1px solid #cc0000;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(204, 0, 0, 0.2);
-      width: 100%;
-      max-width: 350px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    h2 {
-      text-align: center;
-      color: #cc0000;
-      margin-bottom: 10px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
-
-    button {
-      padding: 12px;
-      width: 100%;
-      background-color: #cc0000;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background-color: #a80000;
-    }
-
-    .error {
-      color: red;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .register-link {
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .register-link a {
-      color: #cc0000;
-      font-weight: bold;
-      text-decoration: none;
-    }
-
-    .register-link a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <script type="module">
+    import { login } from './js/auth.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('login-form').onsubmit = async e => {
+        e.preventDefault();
+        const username = e.target.username.value;
+        const password = e.target.password.value;
+        try {
+          await login(username, password);
+          // Redirect based on role
+          const role = localStorage.getItem('role');
+          window.location.href = role === 'admin' ? 'admin_dashboard.html' : 'index.html';
+        } catch (err) {
+          alert(err.msg || 'Login failed');
+        }
+      };
+    });
+  </script>
 </head>
 <body>
-
-  <div class="login-box">
-    <h2>Login to $hop4CU</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <div id="error-msg" class="error"></div>
-    <p class="register-link">Don't have an account? <a href="register.html">Register here</a></p>
-  </div>
-
-  <script>
-    function login() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const errorMsg = document.getElementById('error-msg');
-
-      let users = JSON.parse(localStorage.getItem('users')) || [];
-
-      // Hardcoded admin check
-      if (username === 'admin' && password === 'admin123') {
-        localStorage.setItem('loggedInUser', 'admin');
-        localStorage.setItem('adminLoggedIn', 'true');
-        window.location.href = 'admin_dashboard.html';  // Redirect to the admin dashboard
-        return;
-      }
-
-      // Check if user credentials are valid
-      const user = users.find(user => user.username === username && user.password === password);
-
-      if (user) {
-        localStorage.setItem('loggedInUser', username);  // Set logged-in user
-        window.location.href = 'index.html';  // Redirect to the homepage
-      } else {
-        errorMsg.textContent = 'Invalid username or password.';  // Show error message
-      }
-    }
-  </script>
-
+  <form id="login-form">
+    <h2>Login</h2>
+    <input name="username" placeholder="Username" required />
+    <input name="password" type="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+  </form>
 </body>
 </html>

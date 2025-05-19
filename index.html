@@ -1,186 +1,73 @@
+<!-- Example: Product listing, cart, and order placement using backend -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>$hop4CU - School E-Commerce</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: white; color: #333; }
-    header { background: #cc0000; color: white; padding: 20px; text-align: center; position: relative; }
-    nav { background: #a80000; padding: 10px; text-align: center; position: relative; }
-    nav a { color: white; margin: 0 15px; text-decoration: none; font-weight: bold; }
+  <title>$hop4CU - Store</title>
+  <script type="module">
+    import { getProducts } from './js/products.js';
+    import { placeOrder } from './js/orders.js';
+    import { isLoggedIn, logout } from './js/auth.js';
 
-    .dropdown { display: inline-block; position: relative; }
-    .dropdown-content { display: none; position: absolute; background-color: white; min-width: 120px; right: 0; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1; border-radius: 4px; }
-    .dropdown-content a { color: #cc0000; padding: 10px 16px; text-decoration: none; display: block; text-align: left; font-weight: normal; }
-    .dropdown-content a:hover { background-color: #fbeaea; }
-    .dropdown:hover .dropdown-content { display: block; }
-    .dropdown > a::after { content: ' ▼'; font-size: 0.8em; }
+    let cart = [];
 
-    .container { padding: 20px; display: flex; flex-direction: column; align-items: center; }
-    .category-section { margin-bottom: 40px; width: 90%; max-width: 800px; }
-    .category-title { color: #cc0000; margin-bottom: 10px; text-align: center; }
-    .product-row { display: flex; overflow-x: auto; gap: 20px; padding: 10px 0 10px 10px; justify-content: flex-start; box-sizing: border-box; }
-    .product { min-width: 200px; flex: 0 0 auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; }
-    .product img { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; }
-    .product h4 { color: #cc0000; }
-    .product button { background: #cc0000; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin-top: 8px; }
-    .product button:hover { background: #a80000; }
-    .show-more-btn { min-width: 200px; flex: 0 0 auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; display: flex; align-items: center; justify-content: center; color: #cc0000; font-weight: bold; cursor: pointer; background: #fff; transition: background 0.3s; }
-    .show-more-btn:hover { background: #fbeaea; }
-    footer { background: #cc0000; color: white; text-align: center; padding: 15px; margin-top: 40px; }
-
-    /* Fixed greeting message positioning */
-    #greeting {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
+    function renderProducts(products) {
+      const container = document.getElementById('products');
+      container.innerHTML = '';
+      products.forEach(product => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <h4>${product.name}</h4>
+          <p>${product.category} | $${product.price}</p>
+          <button data-id="${product._id}">Add to Cart</button>
+        `;
+        container.appendChild(div);
+      });
+      container.querySelectorAll('button').forEach(btn => {
+        btn.onclick = () => {
+          const pid = btn.getAttribute('data-id');
+          const prod = products.find(p => p._id === pid);
+          const inCart = cart.find(item => item.product === pid);
+          if (inCart) inCart.quantity += 1;
+          else cart.push({ product: pid, quantity: 1 });
+          renderCart();
+        };
+      });
     }
-  </style>
+
+    function renderCart() {
+      const c = document.getElementById('cart');
+      c.innerHTML = cart.map(item => `${item.quantity}x [${item.product}]`).join('<br>');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!isLoggedIn()) window.location.href = 'login.html';
+      document.getElementById('logout').onclick = logout;
+      try {
+        const products = await getProducts();
+        renderProducts(products);
+      } catch (err) {
+        alert('Failed to load products');
+      }
+      document.getElementById('order-btn').onclick = async () => {
+        try {
+          await placeOrder({ products: cart, total: 0, location: 'School' }); // calculate total as needed
+          alert('Order placed!');
+          cart = [];
+          renderCart();
+        } catch (err) {
+          alert('Order failed');
+        }
+      };
+    });
+  </script>
 </head>
 <body>
-
-<header>
-  <h1>$hop4CU</h1>
-  <p>Your one-stop shop for school essentials</p>
-  <!-- moved greeting here for correct positioning -->
-  <div id="greeting"></div>
-</header>
-
-<nav>
-  <a href="#">Home</a>
-  <a href="/browse_categories.html">Categories</a>
-  <a href="/cart.html">Cart (<span id="cart-count">0</span>)</a>
-  <a href="/contact.html">Contact</a>
-  <div class="dropdown">
-    <a href="#">Account</a>
-    <div class="dropdown-content">
-      <a href="#" onclick="logout()">Logout</a>
-    </div>
-  </div>
-</nav>
-
-<div class="container">
-  <div id="categories"></div>
-</div>
-
-<footer>
-  &copy; 2025 $hop4CU | All rights reserved.
-</footer>
-
-<script>
-  const categories = ['Electronics', 'Stationery', 'Clothing'];
-  let cart = JSON.parse(localStorage.getItem('cart')) || [];
-  
-  function updateGreeting() {
-    const loggedInUser = localStorage.getItem('loggedInUser');
-    if (loggedInUser) {
-      document.getElementById('greeting').textContent = `Hello, ${loggedInUser}!`;
-    }
-  }
-
-  function updateCartCount() {
-    const count = cart.reduce((acc, item) => acc + item.quantity, 0);
-    document.getElementById('cart-count').textContent = count;
-  }
-
-  function addToCart(productName, price) {
-    const allProducts = JSON.parse(localStorage.getItem('products')) || [];
-    const product = allProducts.find(p => p.name === productName);
-    if (!product) {
-      alert("Product not found!");
-      return;
-    }
-
-    const cartItem = cart.find(item => item.name === productName);
-    const totalInCart = cartItem ? cartItem.quantity + 1 : 1;
-
-    if (totalInCart > product.stock) {
-      alert(`Cannot add more than available stock (${product.stock} left)!`);
-      return;
-    }
-
-    if (cartItem) {
-      cartItem.quantity += 1;
-    } else {
-      cart.push({ name: productName, price: price, quantity: 1 });
-    }
-
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    alert(`${productName} added to cart! (${product.stock - totalInCart} remaining if purchased)`);
-    loadStoreProducts();
-  }
-
-  function renderCategory(categoryName, products) {
-    const categoryDiv = document.createElement('div');
-    categoryDiv.className = 'category-section';
-
-    const title = document.createElement('h2');
-    title.className = 'category-title';
-    title.textContent = categoryName;
-    categoryDiv.appendChild(title);
-
-    const row = document.createElement('div');
-    row.className = 'product-row';
-    categoryDiv.appendChild(row);
-
-    const productsToShow = products.slice(0, 5);
-
-    productsToShow.forEach(product => {
-      const cartItem = cart.find(item => item.name === product.name);
-      const remainingStock = product.stock - (cartItem ? cartItem.quantity : 0);
-      const isOutOfStock = remainingStock <= 0;
-
-      const card = document.createElement('div');
-      card.className = 'product';
-
-      card.innerHTML = `
-        <img src="${product.image}" alt="${product.name}">
-        <h4>${product.name}</h4>
-        <p>$${product.price.toFixed(2)}</p>
-        <p>Stock: ${remainingStock}</p>
-        ${isOutOfStock ? '<p style="color:red; font-weight:bold;">Out of Stock</p>' : ''}
-        <button ${isOutOfStock ? 'disabled style="background:gray; cursor:not-allowed;"' : `onclick="addToCart('${product.name}', ${product.price})"`}>
-          ${isOutOfStock ? 'Unavailable' : 'Add to Cart'}
-        </button>`;
-
-      row.appendChild(card);
-    });
-
-    const btn = document.createElement('div');
-    btn.className = 'show-more-btn';
-    btn.textContent = 'Show More';
-    btn.onclick = () => window.location.href = `category.html?category=${encodeURIComponent(categoryName)}`;
-    btn.style.display = products.length > 5 ? 'flex' : 'none';
-    row.appendChild(btn);
-
-    document.getElementById('categories').appendChild(categoryDiv);
-  }
-
-  function loadStoreProducts() {
-    const allProducts = JSON.parse(localStorage.getItem('products')) || [];
-    document.getElementById('categories').innerHTML = '';
-    categories.forEach(cat => {
-      const catProducts = allProducts.filter(p => p.category === cat);
-      renderCategory(cat, catProducts);
-    });
-  }
-
-  function logout() {
-    localStorage.removeItem('loggedInUser');
-    window.location.href = 'login.html';
-  }
-
-  window.onload = () => {
-    if (!localStorage.getItem('loggedInUser')) window.location.href = 'login.html';
-    updateGreeting();
-    updateCartCount();
-    loadStoreProducts();
-  };
-</script>
+  <button id="logout">Logout</button>
+  <h2>Products</h2>
+  <div id="products"></div>
+  <h2>Cart</h2>
+  <div id="cart"></div>
+  <button id="order-btn">Place Order</button>
 </body>
 </html>
